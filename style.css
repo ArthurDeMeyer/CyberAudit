@@ -1,0 +1,109 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons+Round');
+
+/* --- 1. GLOBAL --- */
+.stApp {
+    background-color: #0d0f10 !important;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #ffffff !important;
+    margin-top: -60px;
+}
+
+header, footer, #MainMenu, .stAppDeployButton, div[data-testid="InputInstructions"] {
+    display: none !important;
+}
+
+code { display: none !important; }
+
+/* --- 2. SIDEBAR --- */
+section[data-testid="stSidebar"] {
+    background-color: #0d0f10 !important;
+    border-right: 1px solid #1f2123;
+}
+
+/* --- 3. INPUT RECHERCHE (FIX TEXTE BLANC DEFINITIF) --- */
+
+/* Le conteneur (La boite) */
+div[data-baseweb="base-input"] {
+    background-color: #1a1d1f !important;
+    border: 1px solid #2f3336 !important;
+    border-radius: 12px !important;
+}
+
+/* LE TEXTE TAPÉ (C'est ici la correction) */
+.stTextInput input {
+    color: #ffffff !important;                  /* Blanc standard */
+    -webkit-text-fill-color: #ffffff !important; /* Force le Blanc sur Chrome/Safari */
+    caret-color: #3758f9 !important;            /* Curseur Bleu */
+    background-color: transparent !important;
+}
+
+/* Le Placeholder (ex: mon-client.com) */
+.stTextInput input::placeholder {
+    color: #64748b !important;
+    opacity: 1 !important;
+    -webkit-text-fill-color: #64748b !important;
+}
+
+/* Focus */
+div[data-baseweb="base-input"]:focus-within {
+    border-color: #3758f9 !important;
+    box-shadow: 0 0 0 2px rgba(55, 88, 249, 0.2) !important;
+}
+
+/* --- 4. NAVIGATION --- */
+div[role="radiogroup"] label div[data-testid="stMarkdownContainer"] p {
+    color: #94a3b8 !important;
+    padding: 10px 15px;
+    background-color: transparent;
+}
+
+div[role="radiogroup"] label:hover div[data-testid="stMarkdownContainer"] p {
+    color: #ffffff !important;
+    background-color: #1a1d1f;
+    border-radius: 8px;
+    padding-left: 20px;
+}
+
+div[role="radiogroup"] label[data-checked="true"] div[data-testid="stMarkdownContainer"] p {
+    background: linear-gradient(135deg, #3758f9 0%, #5b7cfa 100%);
+    color: #ffffff !important;
+    border-radius: 8px;
+    font-weight: 600;
+}
+div[role="radiogroup"] label > div:first-child { display: none !important; }
+
+/* --- 5. BOUTONS --- */
+div.stButton > button, 
+div[data-testid="stFormSubmitButton"] > button,
+.stDownloadButton > button {
+    width: 100%;
+    background: linear-gradient(135deg, #3758f9 0%, #5b7cfa 100%) !important;
+    border: none !important;
+    border-radius: 12px !important;
+    height: 50px;
+    margin-top: 0px;
+}
+
+div.stButton > button *, 
+div[data-testid="stFormSubmitButton"] > button *,
+.stDownloadButton > button * {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+}
+
+div.stButton > button:hover,
+div[data-testid="stFormSubmitButton"] > button:hover,
+.stDownloadButton > button:hover {
+    box-shadow: 0 6px 15px rgba(55, 88, 249, 0.4);
+    transform: translateY(-2px);
+    color: #ffffff !important;
+}
+
+/* --- 6. ICONES --- */
+.material-icons-round {
+    font-size: 24px;
+    display: inline-flex;
+    vertical-align: middle;
+}

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberAudit.io - Audit de Sécurité Web Automatisé</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0d0f10; color: white; }
+        .gradient-text {
+            background: linear-gradient(135deg, #3758f9 0%, #5b7cfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(55,88,249,0.15) 0%, rgba(13,15,16,0) 70%);
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-blue-500 selection:text-white">
+
+    <nav class="w-full py-6 px-6 md:px-12 flex justify-between items-center max-w-7xl mx-auto">
+        <div class="text-2xl font-bold tracking-tight">
+            Cyber<span class="text-blue-500">Audit.io</span>
+        </div>
+        <div class="hidden md:flex gap-8 text-sm font-semibold text-gray-400">
+            <a href="#" class="hover:text-white transition">Fonctionnalités</a>
+            <a href="#" class="hover:text-white transition">Pour les Devs</a>
+            <a href="#" class="hover:text-white transition">Tarifs</a>
+        </div>
+        <a href="https://cyberaudit.streamlit.app" target="_blank" class="bg-gray-800 hover:bg-gray-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition border border-gray-700">
+            Connexion
+        </a>
+    </nav>
+
+    <header class="relative pt-20 pb-32 px-6 text-center max-w-5xl mx-auto">
+        <div class="hero-glow"></div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/30 border border-blue-500/30 text-blue-400 text-xs font-bold uppercase tracking-wider mb-8">
+            <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+            Nouveau : Scanner V1 Disponible
+        </div>
+        
+        <h1 class="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-tight">
+            Validez la sécurité de vos <br>
+            <span class="gradient-text">mises en production</span>
+        </h1>
+        
+        <p class="text-lg md:text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+            Ne livrez plus jamais un site avec un port SSH ouvert ou un DMARC manquant. 
+            Générez un <strong>Rapport d'Audit PDF</strong> certifié en 10 secondes pour rassurer vos clients.
+        </p>
+        
+        <div class="flex flex-col md:flex-row gap-4 justify-center items-center">
+            <a href="https://cyberaudit.streamlit.app" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-xl text-lg font-bold transition shadow-lg shadow-blue-900/20 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Lancer un audit gratuit
+            </a>
+            <span class="text-gray-500 text-sm">Aucune inscription requise</span>
+        </div>
+    </header>
+
+    <section class="px-4 mb-32">
+        <div class="max-w-6xl mx-auto bg-[#1a1d1f] rounded-2xl border border-gray-800 p-2 shadow-2xl relative">
+            <div class="absolute inset-0 bg-blue-500/5 blur-3xl rounded-full"></div>
+            <div class="bg-[#0d0f10] rounded-xl overflow-hidden border border-gray-800 aspect-video flex items-center justify-center relative">
+                <div class="text-center">
+                    <p class="text-gray-500 mb-4">Capture de l'interface d'analyse</p>
+                    <img src="https://via.placeholder.com/1200x675/0d0f10/3758f9?text=Interface+CyberAudit.io" alt="Interface Dashboard" class="opacity-80 hover:opacity-100 transition duration-500">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="max-w-7xl mx-auto px-6 pb-32 grid md:grid-cols-3 gap-8">
+        <div class="p-8 rounded-2xl bg-[#131517] border border-gray-800 hover:border-blue-500/50 transition group">
+            <div class="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center mb-6 group-hover:bg-blue-500/20 transition">
+                <span class="text-2xl">🔒</span>
+            </div>
+            <h3 class="text-xl font-bold mb-3 text-white">Audit SSL & Infra</h3>
+            <p class="text-gray-400 leading-relaxed">Détection automatique des certificats expirés et des ports critiques (SSH, FTP, DB) exposés publiquement.</p>
+        </div>
+        
+        <div class="p-8 rounded-2xl bg-[#131517] border border-gray-800 hover:border-blue-500/50 transition group">
+            <div class="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center mb-6 group-hover:bg-green-500/20 transition">
+                <span class="text-2xl">📄</span>
+            </div>
+            <h3 class="text-xl font-bold mb-3 text-white">Rapport PDF Marque Blanche</h3>
+            <p class="text-gray-400 leading-relaxed">Téléchargez un rapport professionnel prêt à être envoyé à votre client pour valider la recette.</p>
+        </div>
+
+        <div class="p-8 rounded-2xl bg-[#131517] border border-gray-800 hover:border-blue-500/50 transition group">
+            <div class="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center mb-6 group-hover:bg-purple-500/20 transition">
+                <span class="text-2xl">🛡️</span>
+            </div>
+            <h3 class="text-xl font-bold mb-3 text-white">Email & Headers</h3>
+            <p class="text-gray-400 leading-relaxed">Vérification des enregistrements DMARC et des en-têtes de sécurité HTTP (HSTS, X-Frame) essentiels.</p>
+        </div>
+    </section>
+
+    <footer class="border-t border-gray-800 py-12 text-center text-gray-500 text-sm">
+        <p>&copy; 2026 CyberAudit.io - Développé par un SysAdmin pour les Devs.</p>
+    </footer>
+
+</body>
+</html>
