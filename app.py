@@ -3,19 +3,20 @@ from scanner_logic import run_full_scan
 from fpdf import FPDF
 import pandas as pd
 import datetime
+import time
 
-# --- CONFIG ---
+# --- 1. CONFIGURATION & CSS ---
 st.set_page_config(page_title="CyberAudit", page_icon="⚡", layout="wide", initial_sidebar_state="expanded")
 
-# --- CSS LOAD (Modifié pour cacher le bouton Deploy) ---
 def local_css(file_name):
-    with open(file_name) as f:
-        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+    try:
+        with open(file_name) as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+    except FileNotFoundError:
+        pass 
     
-    # CSS SPECIAL LOGIN & CLEANUP
     st.markdown("""
         <style>
-        /* Cacher le bouton Deploy et le Menu Hamburger en haut à droite */
         .stAppDeployButton, div[data-testid="stDecoration"] {
             display: none !important;
             visibility: hidden !important;
@@ -23,7 +24,6 @@ def local_css(file_name):
         header {
             visibility: hidden !important;
         }
-        /* Ajustement du champ de login pour qu'il soit plus joli */
         div[data-testid="stVerticalBlock"] > div:has(div.stTextInput) {
             margin-top: 20px;
         }
@@ -32,15 +32,14 @@ def local_css(file_name):
 
 local_css("style.css")
 
-# --- SESSION & MÉMOIRE ---
+# --- 2. INITIALISATION MEMOIRE ---
 if 'history' not in st.session_state: st.session_state['history'] = []
-if 'saved_author' not in st.session_state: st.session_state['saved_author'] = "CyberAudit.io"
+# RETRAIT DU .IO DANS LA VALEUR PAR DEFAUT
+if 'saved_author' not in st.session_state: st.session_state['saved_author'] = "CyberAudit"
+if 'scan_count' not in st.session_state: st.session_state['scan_count'] = 0
 
-
-# --- SECURITÉ (LOGIN BRANDÉ) ---
+# --- 3. SECURITÉ (LOGIN PAGE) ---
 def check_password():
-    """Retourne True si l'utilisateur a le bon mot de passe."""
-    
     def password_entered():
         if st.session_state["password"] in st.secrets["passwords"]["codes"]:
             st.session_state["password_correct"] = True
@@ -49,17 +48,16 @@ def check_password():
             st.session_state["password_correct"] = False
 
     if "password_correct" not in st.session_state:
-        # AFFICHE LE LOGO SUR LA PAGE DE LOGIN
+        # LOGO LOGIN SANS .IO
         st.markdown("""
             <div style="text-align: center; margin-top: 100px; margin-bottom: 30px;">
                 <h1 style="font-size: 50px; font-weight: 800; margin-bottom: 0;">
-                    <span style="color: #ffffff;">Cyber</span><span style="color:#3b82f6">Audit.io</span>
+                    <span style="color: #ffffff;">Cyber</span><span style="color:#3b82f6">Audit</span>
                 </h1>
                 <p style="color: #94a3b8; font-size: 18px;">Espace Sécurisé Bêta</p>
             </div>
             """, unsafe_allow_html=True)
             
-        # On utilise 3 colonnes pour centrer le champ input
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             st.text_input("Code d'accès", type="password", on_change=password_entered, key="password", label_visibility="collapsed", placeholder="Entrez votre code d'accès...")
@@ -67,12 +65,8 @@ def check_password():
         return False
     
     elif not st.session_state["password_correct"]:
-        # Erreur
-        st.markdown("""
-            <div style="text-align: center; margin-top: 100px;">
-                <h1 style="font-size: 40px; margin-bottom: 0;">CyberAudit.io</h1>
-            </div>
-            """, unsafe_allow_html=True)
+        # ERREUR LOGIN SANS .IO
+        st.markdown("""<div style="text-align: center; margin-top: 100px;"><h1 style="font-size: 40px; margin-bottom: 0;">CyberAudit</h1></div>""", unsafe_allow_html=True)
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             st.text_input("Code d'accès", type="password", on_change=password_entered, key="password", label_visibility="collapsed")
@@ -82,42 +76,25 @@ def check_password():
     else:
         return True
 
-# --- EXÉCUTION DU LOGIN ---
 if not check_password():
     st.stop()
 
-# --- SESSION & MÉMOIRE ---
-if 'history' not in st.session_state: st.session_state['history'] = []
-
-# ICI LA CORRECTION : On initialise une variable "saved_author" solide
-if 'saved_author' not in st.session_state: 
-    st.session_state['saved_author'] = "CyberAudit.io"
-
-# --- CSS LOAD ---
-def local_css(file_name):
-    with open(file_name) as f:
-        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-local_css("style.css")
-
-# --- UI HTML GENERATORS ---
-# --- UI HTML GENERATORS ---
+# --- 4. UI HTML GENERATORS ---
 def get_card_html(title, value, badge_text, badge_color, icon_name):
     border_color = "#3b82f6"
     bg_color = "#1e293b"
-    
-    # MODIFICATION ICI : On remplace 'height:100%' par 'height:170px' et 'min-width: 100%'
     return f"""
     <div style="
         background-color:{bg_color}; 
         border:1px solid {border_color}40; 
         border-radius:16px; 
         padding:20px; 
-        height:170px;  /* HAUTEUR FIXE POUR L'ALIGNEMENT */
+        height:170px; 
         display:flex; 
         flex-direction:column; 
         justify-content:space-between; 
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        overflow: hidden; /* Sécurité si le texte est trop long */
+        overflow: hidden;
     ">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
             <div style="background:#334155; width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#fff;">
@@ -131,6 +108,7 @@ def get_card_html(title, value, badge_text, badge_color, icon_name):
         </div>
     </div>
     """
+
 def get_row_html(label, status, detail):
     color = "#10b981" if status else "#ef4444"
     icon = "check_circle" if status else "cancel"
@@ -144,27 +122,28 @@ def get_row_html(label, status, detail):
     </div>
     """
 
-# --- PDF GENERATOR ---
+# --- 5. PDF GENERATOR ---
 class PDFReport(FPDF):
-    def __init__(self, author_name="CyberAudit.io"):
+    # INIT SANS .IO
+    def __init__(self, author_name="CyberAudit"):
         super().__init__()
         self.author_name = author_name
 
     def header(self):
         self.set_fill_color(15, 23, 42)
         self.rect(0, 0, 210, 50, 'F')
-        
         self.set_y(20)
         self.set_font('Arial', 'B', 24)
         self.set_x(10)
         
-        # LOGIQUE MARQUE BLANCHE
-        if self.author_name == "CyberAudit.io" or not self.author_name:
+        # LOGIQUE PDF SANS .IO
+        if self.author_name == "CyberAudit" or not self.author_name:
             self.set_text_color(255, 255, 255)
             w_cyber = self.get_string_width("Cyber")
             self.cell(w_cyber, 10, "Cyber", 0, 0)
             self.set_text_color(59, 130, 246)
-            self.cell(0, 10, "Audit.io", 0, 0)
+            # ICI ON A RETIRÉ LE .IO
+            self.cell(0, 10, "Audit", 0, 0)
         else:
             self.set_text_color(255, 255, 255)
             self.cell(0, 10, self.author_name, 0, 0)
@@ -184,7 +163,6 @@ class PDFReport(FPDF):
         self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
 
 def create_pdf_bytes(data, author_name):
-    # On passe le nom sauvegardé
     pdf = PDFReport(author_name=author_name)
     pdf.add_page()
     
@@ -243,18 +221,18 @@ def create_pdf_bytes(data, author_name):
     add_line("SSL/TLS", data['ssl']['status'], f"Valide ({data['ssl'].get('days_left',0)} jours)")
     add_line("Infrastructure", len(data['open_ports'])==0, f"Ports: {data['open_ports']}" if data['open_ports'] else "Aucun port critique")
     add_line("Email DMARC", data['email']['dmarc'], "Actif" if data['email']['dmarc'] else "Manquant")
-    
     headers_txt = "Headers Sécurisés" if data['headers']['status'] else "Headers Manquants (HSTS/X-Frame)"
     add_line("Sécurité Web (Headers)", data['headers']['status'], headers_txt)
     
     return pdf.output(dest='S').encode('latin-1')
 
-# --- SIDEBAR ---
+# --- 6. SIDEBAR ---
 with st.sidebar:
+    # LOGO SIDEBAR SANS .IO
     st.markdown("""
         <div style="padding: 10px 0px;">
             <h2 style="margin:0; font-size: 22px; font-weight: 700;">
-                <span style="color: #f1f5f9;">Cyber</span><span style="color:#3b82f6">Audit.io</span>
+                <span style="color: #f1f5f9;">Cyber</span><span style="color:#3b82f6">Audit</span>
             </h2>
         </div>
         """, unsafe_allow_html=True
@@ -264,7 +242,7 @@ with st.sidebar:
     menu = st.radio("Navigation", ["Dashboard", "Mes Rapports", "Configuration"], label_visibility="collapsed")
     st.markdown("---")
     
-    # FEEDBACK
+    # FEEDBACK (Blanc)
     st.markdown("### 🐛 Bêta Testeur ?")
     st.markdown("<p style='color: white; opacity: 0.8; font-size: 14px; margin-bottom: 10px;'>Un bug ? Dis-le moi !</p>", unsafe_allow_html=True)
     st.markdown(
@@ -276,17 +254,25 @@ with st.sidebar:
     )
     
     st.markdown("---")
-    st.markdown("""
+    
+    count = st.session_state['scan_count']
+    st.markdown(f"""
         <div style="background: #1e293b; padding: 15px; border-radius: 12px; border: 1px solid #334155;">
-            <p style="color: #f1f5f9; font-weight: 600; font-size: 14px; margin:0;">Plan Pro</p>
-            <p style="font-size: 12px; margin:0 0 10px 0; color: #94a3b8;">Licence Active</p>
-            <div style="height: 4px; background: #334155; border-radius: 2px;">
-                <div style="height: 4px; background: #3b82f6; width: 70%; border-radius: 2px;"></div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                <p style="color: #f1f5f9; font-weight: 600; font-size: 14px; margin:0;">Licence Bêta</p>
+                <p style="color: #10b981; font-weight: 700; font-size: 12px; margin:0;">VIP</p>
+            </div>
+            <p style="font-size: 12px; margin:0 0 10px 0; color: #94a3b8;">
+                Audits réalisés cette session : <strong style="color:white">{count}</strong>
+            </p>
+            <div style="height: 4px; background: #334155; border-radius: 2px; overflow:hidden;">
+                <div style="height: 4px; background: linear-gradient(90deg, #3b82f6, #8b5cf6); width: 100%; border-radius: 2px;"></div>
             </div>
         </div>
     """, unsafe_allow_html=True)
 
-# --- PAGE: DASHBOARD ---
+# --- 7. PAGES LOGIC ---
+
 if menu == "Dashboard":
     st.markdown("""
     <div>
@@ -305,9 +291,9 @@ if menu == "Dashboard":
 
     if submitted and domain:
         with st.spinner("Analyse intelligente en cours..."):
-            import time
             time.sleep(0.5)
             data = run_full_scan(domain)
+            st.session_state['scan_count'] += 1
             st.session_state['history'].insert(0, data)
         
         st.markdown("<br>", unsafe_allow_html=True)
@@ -341,18 +327,15 @@ if menu == "Dashboard":
             st.markdown(get_row_html("Chiffrement SSL/TLS", data['ssl']['status'], f"Issuer: {data['ssl'].get('issuer', 'Unknown')}"), unsafe_allow_html=True)
             st.markdown(get_row_html("Pare-feu (Ports)", len(data['open_ports'])==0, "Aucun port critique détecté" if not data['open_ports'] else f"Ports: {data['open_ports']}"), unsafe_allow_html=True)
             st.markdown(get_row_html("Protection Email", data['email']['dmarc'], "Enregistrement DMARC présent" if data['email']['dmarc'] else "Risque d'usurpation"), unsafe_allow_html=True)
-            
             details_headers = "Headers OK" if data['headers']['status'] else f"Manquant: {', '.join(data['headers']['missing'])}"
             st.markdown(get_row_html("Headers HTTP (HSTS/X-Frame)", data['headers']['status'], details_headers), unsafe_allow_html=True)
 
         with col_R:
             st.markdown("### Export")
             st.info("Le rapport client est prêt à être envoyé.")
-            # ICI LE FIX : On utilise la variable solidement sauvegardée "saved_author"
             pdf_bytes = create_pdf_bytes(data, st.session_state['saved_author'])
             st.download_button("📥 Télécharger PDF", data=pdf_bytes, file_name=f"Audit_{domain}.pdf", mime="application/pdf", use_container_width=True)
 
-# --- PAGE: MES RAPPORTS ---
 elif menu == "Mes Rapports":
     st.title("Historique")
     if st.session_state['history']:
@@ -361,31 +344,23 @@ elif menu == "Mes Rapports":
     else:
         st.info("Aucun audit récent.")
 
-# --- PAGE: CONFIGURATION (SYSTEME BOUTON SAUVEGARDER) ---
 elif menu == "Configuration":
     st.title("⚙️ Paramètres")
     st.markdown("Personnalisez l'expérience CyberAudit.")
-    
     st.markdown("<br>", unsafe_allow_html=True)
     
     with st.container():
         st.markdown("### 🎨 Marque Blanche")
-        st.info("Le nom que vous entrez ici remplacera 'CyberAudit.io' sur tous les rapports PDF générés.")
+        st.info("Le nom que vous entrez ici remplacera 'CyberAudit' sur tous les rapports PDF générés.")
         
-        # 1. On affiche la valeur actuelle
         current_name = st.session_state['saved_author']
-        
-        # 2. L'input ne change PAS la sauvegarde directement
         new_name = st.text_input("Nom de l'auteur / Agence", value=current_name)
         
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # 3. Le Bouton fait le travail de sauvegarde
         if st.button("💾 Sauvegarder les modifications"):
             st.session_state['saved_author'] = new_name
             st.success(f"C'est noté ! Le nom **{new_name}** sera utilisé sur les prochains PDF.")
-            # Petit reload pour être sûr que tout le monde est au courant
-            import time
             time.sleep(1)
             st.rerun()
             
