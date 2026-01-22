@@ -7,35 +7,84 @@ import datetime
 # --- CONFIG ---
 st.set_page_config(page_title="CyberAudit", page_icon="⚡", layout="wide", initial_sidebar_state="expanded")
 
+# --- CSS LOAD (Modifié pour cacher le bouton Deploy) ---
+def local_css(file_name):
+    with open(file_name) as f:
+        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+    
+    # CSS SPECIAL LOGIN & CLEANUP
+    st.markdown("""
+        <style>
+        /* Cacher le bouton Deploy et le Menu Hamburger en haut à droite */
+        .stAppDeployButton, div[data-testid="stDecoration"] {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        header {
+            visibility: hidden !important;
+        }
+        /* Ajustement du champ de login pour qu'il soit plus joli */
+        div[data-testid="stVerticalBlock"] > div:has(div.stTextInput) {
+            margin-top: 20px;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
-# --- SECURITÉ (LOGIN) ---
+local_css("style.css")
+
+# --- SESSION & MÉMOIRE ---
+if 'history' not in st.session_state: st.session_state['history'] = []
+if 'saved_author' not in st.session_state: st.session_state['saved_author'] = "CyberAudit.io"
+
+
+# --- SECURITÉ (LOGIN BRANDÉ) ---
 def check_password():
     """Retourne True si l'utilisateur a le bon mot de passe."""
+    
     def password_entered():
-        """Vérifie le mot de passe stocké dans les secrets."""
-        if st.session_state["password"] in st.secrets["passwords"]:
+        if st.session_state["password"] in st.secrets["passwords"]["codes"]:
             st.session_state["password_correct"] = True
-            del st.session_state["password"]  # On supprime le mdp de la mémoire immédiate
+            del st.session_state["password"]
         else:
             st.session_state["password_correct"] = False
 
     if "password_correct" not in st.session_state:
-        # Premier chargement
-        st.text_input("Code d'accès Bêta", type="password", on_change=password_entered, key="password")
-        st.info("Veuillez entrer le code d'accès fourni par l'administrateur.")
+        # AFFICHE LE LOGO SUR LA PAGE DE LOGIN
+        st.markdown("""
+            <div style="text-align: center; margin-top: 100px; margin-bottom: 30px;">
+                <h1 style="font-size: 50px; font-weight: 800; margin-bottom: 0;">
+                    <span style="color: #ffffff;">Cyber</span><span style="color:#3b82f6">Audit.io</span>
+                </h1>
+                <p style="color: #94a3b8; font-size: 18px;">Espace Sécurisé Bêta</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        # On utilise 3 colonnes pour centrer le champ input
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            st.text_input("Code d'accès", type="password", on_change=password_entered, key="password", label_visibility="collapsed", placeholder="Entrez votre code d'accès...")
+            st.info("🔐 Accès restreint aux bêta-testeurs.")
         return False
+    
     elif not st.session_state["password_correct"]:
-        # Mot de passe incorrect
-        st.text_input("Code d'accès Bêta", type="password", on_change=password_entered, key="password")
-        st.error("😕 Code incorrect.")
+        # Erreur
+        st.markdown("""
+            <div style="text-align: center; margin-top: 100px;">
+                <h1 style="font-size: 40px; margin-bottom: 0;">CyberAudit.io</h1>
+            </div>
+            """, unsafe_allow_html=True)
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            st.text_input("Code d'accès", type="password", on_change=password_entered, key="password", label_visibility="collapsed")
+            st.error("😕 Code incorrect. Réessayez.")
         return False
+    
     else:
-        # Mot de passe correct
         return True
 
+# --- EXÉCUTION DU LOGIN ---
 if not check_password():
-    st.stop() # On arrête tout si pas connecté
-
+    st.stop()
 
 # --- SESSION & MÉMOIRE ---
 if 'history' not in st.session_state: st.session_state['history'] = []
