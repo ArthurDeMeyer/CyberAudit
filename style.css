@@ -1,73 +1,110 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/icon?family=Material+Icons+Round');
 
-/* --- 1. GLOBAL (FOND BLEU NUIT) --- */
-.stApp {
-    background-color: #0f172a !important; /* Bleu nuit profond */
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    color: #f1f5f9 !important; /* Texte blanc cassé (plus doux) */
-    margin-top: -60px;
+/* FORCE DARK MODE */
+:root {
+    color-scheme: dark;
 }
 
-header, footer, #MainMenu, .stAppDeployButton, div[data-testid="InputInstructions"] {
+/* 1. GLOBAL */
+.stApp {
+    background-color: #0f172a !important;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #f1f5f9 !important;
+}
+
+header, footer, #MainMenu, .stAppDeployButton, div[data-testid="InputInstructions"], div[data-testid="stDecoration"] {
     display: none !important;
 }
 
-code { display: none !important; }
+h1, h2, h3, p { color: #f8fafc !important; }
 
-/* --- 2. SIDEBAR (BLEU PLUS CLAIR) --- */
+/* 2. SIDEBAR */
 section[data-testid="stSidebar"] {
-    background-color: #1e293b !important; /* Bleu nuit intermédiaire */
+    background-color: #1e293b !important;
     border-right: 1px solid #334155;
 }
 
-/* --- 3. INPUT RECHERCHE --- */
-div[data-baseweb="base-input"] {
-    background-color: #334155 !important; /* Fond des inputs */
-    border: 1px solid #475569 !important;
-    border-radius: 12px !important;
-}
-
-.stTextInput input {
-    color: #ffffff !important;
-    caret-color: #3b82f6 !important;
-}
-
-.stTextInput input::placeholder {
-    color: #94a3b8 !important;
-}
-
-/* Focus sur l'input */
-div[data-baseweb="base-input"]:focus-within {
-    border-color: #3b82f6 !important; /* Bleu vif au focus */
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
-}
-
-/* --- 4. NAVIGATION (MENU) --- */
+/* 3. NAVIGATION */
 div[role="radiogroup"] label div[data-testid="stMarkdownContainer"] p {
-    color: #94a3b8 !important; /* Gris bleuté par défaut */
+    color: #94a3b8 !important;
     padding: 10px 15px;
     background-color: transparent;
     transition: 0.3s;
 }
-
 div[role="radiogroup"] label:hover div[data-testid="stMarkdownContainer"] p {
     color: #ffffff !important;
-    background-color: #334155; /* Survol */
+    background-color: #334155;
     border-radius: 8px;
     padding-left: 20px;
 }
-
 div[role="radiogroup"] label[data-checked="true"] div[data-testid="stMarkdownContainer"] p {
-    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); /* Dégradé Bleu Roi */
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
     color: #ffffff !important;
     border-radius: 8px;
     font-weight: 600;
     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
-div[role="radiogroup"] label > div:first-child { display: none !important; }
+section[data-testid="stSidebar"] div[role="radiogroup"] label > div:first-child { 
+    display: none !important; 
+}
 
-/* --- 5. BOUTONS --- */
+/* 4. LE RETOUR DE LA LISTE DÉROULANTE (FIX CLEAN) */
+
+/* A. La Boite Selectbox (Fermée) et Text Area */
+div[data-baseweb="select"] > div,
+.stTextArea textarea {
+    background-color: #334155 !important;
+    border: 1px solid #475569 !important;
+    border-radius: 12px !important;
+    color: #ffffff !important;
+}
+
+/* B. Le texte à l'intérieur */
+div[data-baseweb="select"] span {
+    color: white !important;
+}
+div[data-baseweb="select"] svg {
+    fill: white !important;
+}
+
+/* C. Le FOCUS (Quand on clique ou ouvre) */
+div[data-baseweb="select"] > div:focus-within,
+.stTextArea textarea:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+    background-color: #334155 !important;
+}
+
+/* D. LE MENU QUI S'OUVRE (Le Popover) */
+div[data-baseweb="popover"] {
+    background-color: #1e293b !important;
+    border: 1px solid #334155 !important;
+    border-radius: 12px !important;
+}
+div[data-baseweb="menu"], ul {
+    background-color: transparent !important;
+}
+li[role="option"] {
+    background-color: #1e293b !important;
+    color: #f1f5f9 !important;
+    padding: 10px 15px !important;
+}
+li[role="option"]:hover, li[role="option"][aria-selected="true"] {
+    background-color: #334155 !important;
+    color: #3b82f6 !important;
+}
+
+/* 5. LABELS */
+.stTextInput label p, .stSelectbox label p, .stTextArea label p {
+    color: #f1f5f9 !important;
+    font-weight: 600 !important;
+}
+.stTextInput input::placeholder, .stTextArea textarea::placeholder {
+    color: #94a3b8 !important;
+}
+
+/* 6. BOUTONS */
 div.stButton > button, 
 div[data-testid="stFormSubmitButton"] > button,
 .stDownloadButton > button {
@@ -75,20 +112,39 @@ div[data-testid="stFormSubmitButton"] > button,
     background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%) !important;
     border: none !important;
     border-radius: 12px !important;
-    height: 50px;
+    height: 45px;
+    color: white !important;
+    font-weight: 600 !important;
 }
-
-div.stButton > button:hover,
-div[data-testid="stFormSubmitButton"] > button:hover,
-.stDownloadButton > button:hover {
+div.stButton > button:hover {
     box-shadow: 0 6px 15px rgba(37, 99, 235, 0.4);
     transform: translateY(-2px);
-    color: #ffffff !important;
+    color: white !important;
 }
 
-/* --- 6. CARTES DE RESULTATS (DASHBOARD) --- */
-/* Pour cibler les div qu'on injecte via HTML dans app.py, on utilise des classes génériques ou inline, 
-   mais ici on s'assure que les textes globaux sont lisibles */
-h1, h2, h3 {
-    color: #f8fafc !important; /* Titres très clairs */
+/* 7. EXPANDER (BARRE BLANCHE FIX) */
+div[data-testid="stExpander"] {
+    background-color: transparent !important;
+    border: 1px solid #475569 !important;
+    border-radius: 12px !important;
+    color: white !important;
+}
+div[data-testid="stExpander"] details {
+    background-color: transparent !important;
+    border: none !important;
+}
+div[data-testid="stExpander"] details > summary {
+    background-color: transparent !important;
+    color: #f1f5f9 !important;
+    font-weight: 600 !important;
+}
+div[data-testid="stExpander"] details > summary svg {
+    fill: white !important;
+    color: white !important;
+}
+div[data-testid="stExpander"] details > summary:hover {
+    color: #3b82f6 !important;
+}
+div[data-testid="stExpander"] details > summary:hover svg {
+    fill: #3b82f6 !important;
 }
