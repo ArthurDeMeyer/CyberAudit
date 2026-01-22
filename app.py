@@ -7,6 +7,43 @@ import datetime
 # --- CONFIG ---
 st.set_page_config(page_title="CyberAudit", page_icon="⚡", layout="wide", initial_sidebar_state="expanded")
 
+
+# --- SECURITÉ (LOGIN) ---
+def check_password():
+    """Retourne True si l'utilisateur a le bon mot de passe."""
+    def password_entered():
+        """Vérifie le mot de passe stocké dans les secrets."""
+        if st.session_state["password"] in st.secrets["passwords"]:
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]  # On supprime le mdp de la mémoire immédiate
+        else:
+            st.session_state["password_correct"] = False
+
+    if "password_correct" not in st.session_state:
+        # Premier chargement
+        st.text_input("Code d'accès Bêta", type="password", on_change=password_entered, key="password")
+        st.info("Veuillez entrer le code d'accès fourni par l'administrateur.")
+        return False
+    elif not st.session_state["password_correct"]:
+        # Mot de passe incorrect
+        st.text_input("Code d'accès Bêta", type="password", on_change=password_entered, key="password")
+        st.error("😕 Code incorrect.")
+        return False
+    else:
+        # Mot de passe correct
+        return True
+
+if not check_password():
+    st.stop() # On arrête tout si pas connecté
+
+
+# --- SESSION & MÉMOIRE ---
+if 'history' not in st.session_state: st.session_state['history'] = []
+
+# ICI LA CORRECTION : On initialise une variable "saved_author" solide
+if 'saved_author' not in st.session_state: 
+    st.session_state['saved_author'] = "CyberAudit.io"
+
 # --- CSS LOAD ---
 def local_css(file_name):
     with open(file_name) as f:
@@ -14,32 +51,45 @@ def local_css(file_name):
 local_css("style.css")
 
 # --- UI HTML GENERATORS ---
+# --- UI HTML GENERATORS ---
 def get_card_html(title, value, badge_text, badge_color, icon_name):
-    border_color = "#3758f9"
-    bg_color = "#1a1d1f"
+    border_color = "#3b82f6"
+    bg_color = "#1e293b"
+    
+    # MODIFICATION ICI : On remplace 'height:100%' par 'height:170px' et 'min-width: 100%'
     return f"""
-    <div style="background-color:{bg_color}; border:1px solid {border_color}; border-radius:16px; padding:24px; height:100%; display:flex; flex-direction:column; justify-content:space-between;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
-            <div style="background:#272b30; width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#fff;">
-                <span class="material-icons-round" style="font-size:24px;">{icon_name}</span>
+    <div style="
+        background-color:{bg_color}; 
+        border:1px solid {border_color}40; 
+        border-radius:16px; 
+        padding:20px; 
+        height:170px;  /* HAUTEUR FIXE POUR L'ALIGNEMENT */
+        display:flex; 
+        flex-direction:column; 
+        justify-content:space-between; 
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        overflow: hidden; /* Sécurité si le texte est trop long */
+    ">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+            <div style="background:#334155; width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#fff;">
+                <span class="material-icons-round" style="font-size:20px;">{icon_name}</span>
             </div>
-            <span style="background:{badge_color}20; color:{badge_color}; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:700;">{badge_text}</span>
+            <span style="background:{badge_color}20; color:{badge_color}; padding:4px 10px; border-radius:20px; font-size:10px; font-weight:700; white-space: nowrap;">{badge_text}</span>
         </div>
         <div>
-            <p style="color:#94a3b8; font-size:13px; font-weight:600; text-transform:uppercase; margin-bottom:8px; letter-spacing:0.5px;">{title}</p>
-            <h2 style="color:#fff; font-size:32px; font-weight:700; margin:0;">{value}</h2>
+            <p style="color:#94a3b8; font-size:12px; font-weight:600; text-transform:uppercase; margin-bottom:5px; letter-spacing:0.5px;">{title}</p>
+            <h2 style="color:#f8fafc; font-size:28px; font-weight:700; margin:0;">{value}</h2>
         </div>
     </div>
     """
-
 def get_row_html(label, status, detail):
     color = "#10b981" if status else "#ef4444"
     icon = "check_circle" if status else "cancel"
     return f"""
-    <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; background:#1a1d1f; border-radius:12px; margin-bottom:12px; border:1px solid #2f3336;">
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; background:#1e293b; border-radius:12px; margin-bottom:12px; border:1px solid #334155;">
         <div style="display:flex; align-items:center; gap:15px;">
             <span class="material-icons-round" style="color:{color}; font-size:20px;">{icon}</span>
-            <span style="color:#e2e8f0; font-weight:600; font-size:15px;">{label}</span>
+            <span style="color:#f1f5f9; font-weight:600; font-size:15px;">{label}</span>
         </div>
         <span style="color:#94a3b8; font-size:13px; font-family:monospace;">{detail}</span>
     </div>
@@ -47,22 +97,31 @@ def get_row_html(label, status, detail):
 
 # --- PDF GENERATOR ---
 class PDFReport(FPDF):
+    def __init__(self, author_name="CyberAudit.io"):
+        super().__init__()
+        self.author_name = author_name
+
     def header(self):
-        self.set_fill_color(17, 24, 39)
+        self.set_fill_color(15, 23, 42)
         self.rect(0, 0, 210, 50, 'F')
+        
         self.set_y(20)
         self.set_font('Arial', 'B', 24)
         self.set_x(10)
         
-        self.set_text_color(255, 255, 255)
-        w_cyber = self.get_string_width("Cyber")
-        self.cell(w_cyber, 10, "Cyber", 0, 0)
-        
-        self.set_text_color(55, 88, 249)
-        self.cell(0, 10, "Audit.io", 0, 0)
+        # LOGIQUE MARQUE BLANCHE
+        if self.author_name == "CyberAudit.io" or not self.author_name:
+            self.set_text_color(255, 255, 255)
+            w_cyber = self.get_string_width("Cyber")
+            self.cell(w_cyber, 10, "Cyber", 0, 0)
+            self.set_text_color(59, 130, 246)
+            self.cell(0, 10, "Audit.io", 0, 0)
+        else:
+            self.set_text_color(255, 255, 255)
+            self.cell(0, 10, self.author_name, 0, 0)
         
         self.set_font('Arial', '', 10)
-        self.set_text_color(156, 163, 175)
+        self.set_text_color(148, 163, 184)
         self.set_x(-70)
         self.cell(60, 10, f'Réf: AUDIT-{datetime.date.today().strftime("%Y%m%d")}', 0, 0, 'R')
         self.ln(40)
@@ -70,26 +129,27 @@ class PDFReport(FPDF):
     def footer(self):
         self.set_y(-30)
         self.set_font('Arial', 'I', 8)
-        self.set_text_color(107, 114, 128)
-        self.multi_cell(0, 4, "AVERTISSEMENT : Ce rapport est généré automatiquement. Il ne remplace pas un audit d'intrusion complet (Pentest).", align='C')
+        self.set_text_color(100, 116, 139)
+        self.multi_cell(0, 4, f"Rapport généré par {self.author_name}. Ne remplace pas un pentest complet.", align='C')
         self.ln(2)
         self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
 
-def create_pdf_bytes(data):
-    pdf = PDFReport()
+def create_pdf_bytes(data, author_name):
+    # On passe le nom sauvegardé
+    pdf = PDFReport(author_name=author_name)
     pdf.add_page()
     
     pdf.set_font("Arial", 'B', 20)
-    pdf.set_text_color(17, 24, 39)
+    pdf.set_text_color(15, 23, 42)
     pdf.write(10, "Rapport d'")
-    pdf.set_text_color(17, 24, 39)
+    pdf.set_text_color(15, 23, 42)
     pdf.write(10, "Audit")
-    pdf.set_text_color(17, 24, 39)
+    pdf.set_text_color(15, 23, 42)
     pdf.write(10, f" : {data['domain']}")
     pdf.ln(15)
     
     pdf.set_font("Arial", '', 11)
-    pdf.set_text_color(107, 114, 128)
+    pdf.set_text_color(100, 116, 139)
     pdf.cell(0, 10, f"Généré le {datetime.datetime.now().strftime('%d/%m/%Y à %H:%M')}", 0, 1)
     pdf.ln(10)
     
@@ -111,61 +171,73 @@ def create_pdf_bytes(data):
     pdf.ln(15)
     
     pdf.set_font("Arial", 'B', 14)
-    pdf.set_text_color(17, 24, 39)
+    pdf.set_text_color(15, 23, 42)
     pdf.cell(0, 10, "Analyse Technique", 0, 1)
-    pdf.set_draw_color(229, 231, 235)
+    pdf.set_draw_color(226, 232, 240)
     pdf.line(10, pdf.get_y(), 200, pdf.get_y())
     pdf.ln(5)
     
     def add_line(t, ok, r):
         pdf.set_font("Arial", 'B', 11)
-        pdf.set_text_color(17, 24, 39)
+        pdf.set_text_color(15, 23, 42)
         pdf.cell(120, 8, t, 0, 0)
         pdf.set_text_color(21, 128, 61) if ok else pdf.set_text_color(185, 28, 28)
         pdf.cell(0, 8, "CONFORME" if ok else "ATTENTION", 0, 1, 'R')
         pdf.set_font("Arial", '', 10)
-        pdf.set_text_color(55, 65, 81)
+        pdf.set_text_color(71, 85, 105)
         pdf.cell(0, 6, f"Résultat : {r}", 0, 1)
         pdf.ln(2)
-        pdf.set_draw_color(243, 244, 246)
+        pdf.set_draw_color(241, 245, 249)
         pdf.line(10, pdf.get_y(), 200, pdf.get_y())
         pdf.ln(4)
 
     add_line("SSL/TLS", data['ssl']['status'], f"Valide ({data['ssl'].get('days_left',0)} jours)")
     add_line("Infrastructure", len(data['open_ports'])==0, f"Ports: {data['open_ports']}" if data['open_ports'] else "Aucun port critique")
     add_line("Email DMARC", data['email']['dmarc'], "Actif" if data['email']['dmarc'] else "Manquant")
-    # NOUVELLE LIGNE PDF POUR LES HEADERS
+    
     headers_txt = "Headers Sécurisés" if data['headers']['status'] else "Headers Manquants (HSTS/X-Frame)"
     add_line("Sécurité Web (Headers)", data['headers']['status'], headers_txt)
     
     return pdf.output(dest='S').encode('latin-1')
 
-# --- SESSION ---
-if 'history' not in st.session_state: st.session_state['history'] = []
-
 # --- SIDEBAR ---
 with st.sidebar:
     st.markdown("""
-        <div style="padding: 10px 10px 30px 10px;">
+        <div style="padding: 10px 0px;">
             <h2 style="margin:0; font-size: 22px; font-weight: 700;">
-                <span style="color: #ffffff;">Cyber</span><span style="color:#3758f9">Audit.io</span>
+                <span style="color: #f1f5f9;">Cyber</span><span style="color:#3b82f6">Audit.io</span>
             </h2>
         </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True
+    )
     
-    menu = st.radio("", ["Dashboard", "Mes Rapports", "Configuration"], label_visibility="collapsed")
+    st.markdown("---")
+    menu = st.radio("Navigation", ["Dashboard", "Mes Rapports", "Configuration"], label_visibility="collapsed")
+    st.markdown("---")
+    
+    # FEEDBACK
+    st.markdown("### 🐛 Bêta Testeur ?")
+    st.markdown("<p style='color: white; opacity: 0.8; font-size: 14px; margin-bottom: 10px;'>Un bug ? Dis-le moi !</p>", unsafe_allow_html=True)
+    st.markdown(
+        """<a href="mailto:tonemail@gmail.com?subject=Feedback CyberAudit" target="_blank">
+        <button style="background-color:#334155; color:white; border:1px solid #475569; padding:8px; width:100%; border-radius:6px; cursor:pointer;">
+        ✉️ Feedback
+        </button></a>""", 
+        unsafe_allow_html=True
+    )
+    
     st.markdown("---")
     st.markdown("""
-        <div style="background: #1a1d1f; padding: 15px; border-radius: 12px; border: 1px solid #2f3336;">
-            <p style="color: #fff; font-weight: 600; font-size: 14px; margin:0;">Plan Pro</p>
+        <div style="background: #1e293b; padding: 15px; border-radius: 12px; border: 1px solid #334155;">
+            <p style="color: #f1f5f9; font-weight: 600; font-size: 14px; margin:0;">Plan Pro</p>
             <p style="font-size: 12px; margin:0 0 10px 0; color: #94a3b8;">Licence Active</p>
-            <div style="height: 4px; background: #2f3336; border-radius: 2px;">
-                <div style="height: 4px; background: #3758f9; width: 70%; border-radius: 2px;"></div>
+            <div style="height: 4px; background: #334155; border-radius: 2px;">
+                <div style="height: 4px; background: #3b82f6; width: 70%; border-radius: 2px;"></div>
             </div>
         </div>
     """, unsafe_allow_html=True)
 
-# --- DASHBOARD ---
+# --- PAGE: DASHBOARD ---
 if menu == "Dashboard":
     st.markdown("""
     <div>
@@ -190,9 +262,8 @@ if menu == "Dashboard":
             st.session_state['history'].insert(0, data)
         
         st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown(f"<h3>Résultats pour <span style='color:#3758f9'>{domain}</span></h3>", unsafe_allow_html=True)
+        st.markdown(f"<h3>Résultats pour <span style='color:#3b82f6'>{domain}</span></h3>", unsafe_allow_html=True)
         
-        # 5 COLONNES MAINTENANT
         k1, k2, k3, k4, k5 = st.columns(5)
         
         with k1:
@@ -208,7 +279,6 @@ if menu == "Dashboard":
         with k4:
             color = "#10b981" if data['email']['dmarc'] else "#f59e0b"
             st.markdown(get_card_html("Email DMARC", "Actif" if data['email']['dmarc'] else "Manquant", "Anti-Spoofing", color, "mark_email_read"), unsafe_allow_html=True)
-        # NOUVELLE CARTE HEADERS
         with k5:
             color = "#10b981" if data['headers']['status'] else "#ef4444"
             status_txt = "Sécurisé" if data['headers']['status'] else "Risque"
@@ -222,16 +292,18 @@ if menu == "Dashboard":
             st.markdown(get_row_html("Chiffrement SSL/TLS", data['ssl']['status'], f"Issuer: {data['ssl'].get('issuer', 'Unknown')}"), unsafe_allow_html=True)
             st.markdown(get_row_html("Pare-feu (Ports)", len(data['open_ports'])==0, "Aucun port critique détecté" if not data['open_ports'] else f"Ports: {data['open_ports']}"), unsafe_allow_html=True)
             st.markdown(get_row_html("Protection Email", data['email']['dmarc'], "Enregistrement DMARC présent" if data['email']['dmarc'] else "Risque d'usurpation"), unsafe_allow_html=True)
-            # NOUVELLE LIGNE DETAILS
+            
             details_headers = "Headers OK" if data['headers']['status'] else f"Manquant: {', '.join(data['headers']['missing'])}"
             st.markdown(get_row_html("Headers HTTP (HSTS/X-Frame)", data['headers']['status'], details_headers), unsafe_allow_html=True)
 
         with col_R:
             st.markdown("### Export")
             st.info("Le rapport client est prêt à être envoyé.")
-            pdf_bytes = create_pdf_bytes(data)
+            # ICI LE FIX : On utilise la variable solidement sauvegardée "saved_author"
+            pdf_bytes = create_pdf_bytes(data, st.session_state['saved_author'])
             st.download_button("📥 Télécharger PDF", data=pdf_bytes, file_name=f"Audit_{domain}.pdf", mime="application/pdf", use_container_width=True)
 
+# --- PAGE: MES RAPPORTS ---
 elif menu == "Mes Rapports":
     st.title("Historique")
     if st.session_state['history']:
@@ -239,3 +311,33 @@ elif menu == "Mes Rapports":
         st.dataframe(df[['domain', 'score']], use_container_width=True)
     else:
         st.info("Aucun audit récent.")
+
+# --- PAGE: CONFIGURATION (SYSTEME BOUTON SAUVEGARDER) ---
+elif menu == "Configuration":
+    st.title("⚙️ Paramètres")
+    st.markdown("Personnalisez l'expérience CyberAudit.")
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    with st.container():
+        st.markdown("### 🎨 Marque Blanche")
+        st.info("Le nom que vous entrez ici remplacera 'CyberAudit.io' sur tous les rapports PDF générés.")
+        
+        # 1. On affiche la valeur actuelle
+        current_name = st.session_state['saved_author']
+        
+        # 2. L'input ne change PAS la sauvegarde directement
+        new_name = st.text_input("Nom de l'auteur / Agence", value=current_name)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # 3. Le Bouton fait le travail de sauvegarde
+        if st.button("💾 Sauvegarder les modifications"):
+            st.session_state['saved_author'] = new_name
+            st.success(f"C'est noté ! Le nom **{new_name}** sera utilisé sur les prochains PDF.")
+            # Petit reload pour être sûr que tout le monde est au courant
+            import time
+            time.sleep(1)
+            st.rerun()
+            
+        st.info(f"Nom actuel utilisé sur le PDF : **{st.session_state['saved_author']}**")
