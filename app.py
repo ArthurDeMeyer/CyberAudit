@@ -34,7 +34,6 @@ local_css("style.css")
 
 # --- 2. INITIALISATION MEMOIRE ---
 if 'history' not in st.session_state: st.session_state['history'] = []
-# RETRAIT DU .IO DANS LA VALEUR PAR DEFAUT
 if 'saved_author' not in st.session_state: st.session_state['saved_author'] = "CyberAudit"
 if 'scan_count' not in st.session_state: st.session_state['scan_count'] = 0
 
@@ -48,7 +47,6 @@ def check_password():
             st.session_state["password_correct"] = False
 
     if "password_correct" not in st.session_state:
-        # LOGO LOGIN SANS .IO
         st.markdown("""
             <div style="text-align: center; margin-top: 100px; margin-bottom: 30px;">
                 <h1 style="font-size: 50px; font-weight: 800; margin-bottom: 0;">
@@ -65,7 +63,6 @@ def check_password():
         return False
     
     elif not st.session_state["password_correct"]:
-        # ERREUR LOGIN SANS .IO
         st.markdown("""<div style="text-align: center; margin-top: 100px;"><h1 style="font-size: 40px; margin-bottom: 0;">CyberAudit</h1></div>""", unsafe_allow_html=True)
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
@@ -124,7 +121,6 @@ def get_row_html(label, status, detail):
 
 # --- 5. PDF GENERATOR ---
 class PDFReport(FPDF):
-    # INIT SANS .IO
     def __init__(self, author_name="CyberAudit"):
         super().__init__()
         self.author_name = author_name
@@ -136,13 +132,11 @@ class PDFReport(FPDF):
         self.set_font('Arial', 'B', 24)
         self.set_x(10)
         
-        # LOGIQUE PDF SANS .IO
         if self.author_name == "CyberAudit" or not self.author_name:
             self.set_text_color(255, 255, 255)
             w_cyber = self.get_string_width("Cyber")
             self.cell(w_cyber, 10, "Cyber", 0, 0)
             self.set_text_color(59, 130, 246)
-            # ICI ON A RETIRÉ LE .IO
             self.cell(0, 10, "Audit", 0, 0)
         else:
             self.set_text_color(255, 255, 255)
@@ -226,9 +220,8 @@ def create_pdf_bytes(data, author_name):
     
     return pdf.output(dest='S').encode('latin-1')
 
-# --- 6. SIDEBAR ---
+# --- 6. SIDEBAR AVEC PLACEHOLDER (CORRECTION) ---
 with st.sidebar:
-    # LOGO SIDEBAR SANS .IO
     st.markdown("""
         <div style="padding: 10px 0px;">
             <h2 style="margin:0; font-size: 22px; font-weight: 700;">
@@ -242,7 +235,7 @@ with st.sidebar:
     menu = st.radio("Navigation", ["Dashboard", "Mes Rapports", "Configuration"], label_visibility="collapsed")
     st.markdown("---")
     
-    # FEEDBACK (Blanc)
+    # FEEDBACK
     st.markdown("### 🐛 Bêta Testeur ?")
     st.markdown("<p style='color: white; opacity: 0.8; font-size: 14px; margin-bottom: 10px;'>Un bug ? Dis-le moi !</p>", unsafe_allow_html=True)
     st.markdown(
@@ -255,8 +248,13 @@ with st.sidebar:
     
     st.markdown("---")
     
+    # ICI EST L'ASTUCE : On crée un espace vide qu'on remplira plus tard
+    vip_stats_placeholder = st.empty()
+
+# FONCTION POUR AFFICHER LES STATS DANS L'ESPACE VIDE
+def render_vip_stats():
     count = st.session_state['scan_count']
-    st.markdown(f"""
+    vip_stats_placeholder.markdown(f"""
         <div style="background: #1e293b; padding: 15px; border-radius: 12px; border: 1px solid #334155;">
             <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
                 <p style="color: #f1f5f9; font-weight: 600; font-size: 14px; margin:0;">Licence Bêta</p>
@@ -365,3 +363,8 @@ elif menu == "Configuration":
             st.rerun()
             
         st.info(f"Nom actuel utilisé sur le PDF : **{st.session_state['saved_author']}**")
+
+# --- 8. EXECUTION FINALE ---
+# On appelle la fonction d'affichage du Widget TOUT A LA FIN
+# Comme ça, elle prend le compte à jour (après le +1) et l'affiche dans la sidebar
+render_vip_stats()
